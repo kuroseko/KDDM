@@ -66,7 +66,7 @@ if confidence is not None:
             break
 
     if recommendations:
-        st.subheader(f'Top 3 recommended items for {selected_item}:')
+        st.subheader(f'Top 3 recommended items to go with {selected_item}:')
         for i, item in enumerate(recommendations, start=1):
             st.write(f"{i}. {item}")
     else:
