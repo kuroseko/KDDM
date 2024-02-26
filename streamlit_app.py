@@ -60,4 +60,14 @@ if confidence is not None:
     for premise, conclusion in sorted(confidence, key=lambda x: confidence[x], reverse=True):
         premise_name = features[premise]
         conclusion_name = features[conclusion]
-        if premise_name
+        if premise_name == selected_item:
+            recommendations.append(conclusion_name)
+        if len(recommendations) >= 3:
+            break
+
+    if recommendations:
+        st.subheader(f'Top 3 recommended items for {selected_item}:')
+        for i, item in enumerate(recommendations, start=1):
+            st.write(f"{i}. {item}")
+    else:
+        st.write("No recommendations available for the selected item.")
