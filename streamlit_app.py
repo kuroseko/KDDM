@@ -54,7 +54,7 @@ def set_selected_item(item_name):
 st.title('Item Recommendation')
 
 # GitHub repository URL and file path
-repo_url = "https://github.com/yourusername/yourrepo"
+repo_url = "https://github.com/kuroseko/KDDM"
 file_path = "JapanMenuItems.xlsx"
 
 # Process the file from GitHub
