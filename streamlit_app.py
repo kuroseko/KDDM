@@ -3,7 +3,6 @@ import streamlit as st
 from collections import defaultdict
 import requests
 from io import BytesIO
-from PIL import Image
 
 # Function to process the file from GitHub
 def process_github_file(repo_url, file_path):
@@ -43,20 +42,25 @@ def process_github_file(repo_url, file_path):
         st.error("Failed to fetch file from GitHub repository.")
         return None, None, None
 
+# Initialize session state for selected item
+if 'selected_item_name' not in st.session_state:
+    st.session_state['selected_item_name'] = None
+
+# Function to set the selected item in session state
+def set_selected_item(item_name):
+    st.session_state['selected_item_name'] = item_name
+
 # Streamlit App
 st.title('Item Recommendation')
 
 # GitHub repository URL and file path
-repo_url = "https://github.com/kuroseko/KDDM"
+repo_url = "https://github.com/yourusername/yourrepo"
 file_path = "JapanMenuItems.xlsx"
 
 # Process the file from GitHub
 confidence, support, features = process_github_file(repo_url, file_path)
 
-# Display images as buttons
-st.subheader('Choose a menu item:')
-
-# Dictionary of menu items and their image URLs
+# Dictionary of menu items with their image URLs
 menu_items_with_images = {
     "California Roll": "https://norecipes.com/wp-content/uploads/2019/12/best-california-roll-004.jpg",
     "Salmon Nigiri": "https://aisforappleau.com/wp-content/uploads/2023/07/how-to-make-sushi-salmon-nigiri-6.jpg",
@@ -71,30 +75,29 @@ menu_items_with_images = {
     # ... more items and URLs as necessary
 }
 
-# Display images as radio buttons
+
+# Display buttons for each menu item using session state to track selection
 st.subheader('Choose a menu item:')
+for item_name, item_image_url in menu_items_with_images.items():
+    col1, col2 = st.columns([1, 3])
+    with col1:
+        if st.button(f'Select {item_name}'):
+            set_selected_item(item_name)
+    with col2:
+        st.image(item_image_url, caption=item_name, width=150)
 
-# Creating a list for radio button selections that contains the item names
-item_names = list(menu_items_with_images.keys())
-
-# Create a radio button for item selection
-selected_item_name = st.radio('Select a menu item:', item_names)
-
-# Display the selected item's image using the dictionary of menu items with images
-if selected_item_name:
-    st.image(menu_items_with_images[selected_item_name], width=300)
-
-# If a selection has been made, show the recommendations
-if selected_item_name and confidence:
-    # Display the recommendations
-    st.subheader(f'Top 3 recommended items to go with {selected_item_name}:')
+# Display the recommendations if an item was selected
+if st.session_state['selected_item_name']:
+    selected_item = st.session_state['selected_item_name']
+    st.write(f"Selected item: {selected_item}")
+    st.subheader(f'Top 3 recommended items to go with {selected_item}:')
     recommendations = []
 
     # Logic to get recommendations based on the selected item
     for premise, conclusion in sorted(confidence, key=lambda x: confidence[x], reverse=True):
         premise_name = features[premise]
         conclusion_name = features[conclusion]
-        if premise_name == selected_item_name and len(recommendations) < 3:
+        if premise_name == selected_item and len(recommendations) < 3:
             recommendations.append(conclusion_name)
 
     # Display the recommendations
