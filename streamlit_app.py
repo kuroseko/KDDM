@@ -4,6 +4,14 @@ from collections import defaultdict
 import requests
 from io import BytesIO
 
+# Initialize session state for selected item
+if 'selected_item_name' not in st.session_state:
+    st.session_state['selected_item_name'] = None
+
+# Function to set the selected item in session state
+def set_selected_item(item_name):
+    st.session_state['selected_item_name'] = item_name
+
 # Function to process the file from GitHub
 def process_github_file(repo_url, file_path):
     raw_url = f"{repo_url}/raw/main/{file_path}"
@@ -41,15 +49,7 @@ def process_github_file(repo_url, file_path):
     else:
         st.error("Failed to fetch file from GitHub repository.")
         return None, None, None
-
-# Initialize session state for selected item
-if 'selected_item_name' not in st.session_state:
-    st.session_state['selected_item_name'] = None
-
-# Function to set the selected item in session state
-def set_selected_item(item_name):
-    st.session_state['selected_item_name'] = item_name
-
+        
 # Streamlit App
 st.title('Item Recommendation')
 
@@ -76,15 +76,17 @@ menu_items_with_images = {
 }
 
 
-# Display buttons for each menu item using session state to track selection
+# Display images and buttons in two columns
 st.subheader('Choose a menu item:')
+cols = st.columns(2)
+col_index = 0
+
 for item_name, item_image_url in menu_items_with_images.items():
-    col1, col2 = st.columns([1, 3])
-    with col1:
-        if st.button(f'Select {item_name}'):
-            set_selected_item(item_name)
-    with col2:
+    with cols[col_index % 2]:
         st.image(item_image_url, caption=item_name, width=150)
+        if st.button(f'Select {item_name}', key=item_name):
+            set_selected_item(item_name)
+    col_index += 1
 
 # Display the recommendations if an item was selected
 if st.session_state['selected_item_name']:
@@ -93,13 +95,11 @@ if st.session_state['selected_item_name']:
     st.subheader(f'Top 3 recommended items to go with {selected_item}:')
     recommendations = []
 
-    # Logic to get recommendations based on the selected item
     for premise, conclusion in sorted(confidence, key=lambda x: confidence[x], reverse=True):
         premise_name = features[premise]
         conclusion_name = features[conclusion]
         if premise_name == selected_item and len(recommendations) < 3:
             recommendations.append(conclusion_name)
 
-    # Display the recommendations
     for i, recommended_item in enumerate(recommendations, start=1):
         st.write(f"{i}. {recommended_item}")
