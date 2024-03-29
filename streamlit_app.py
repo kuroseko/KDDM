@@ -71,34 +71,32 @@ menu_items_with_images = {
     # ... more items and URLs as necessary
 }
 
-# Variable to track the selected item
-selected_item = None
+# Display images as radio buttons
+st.subheader('Choose a menu item:')
 
-# Iterate over the menu items and their images
-for item_name, item_image_url in menu_items_with_images.items():
-    # Display image with caption
-    st.image(item_image_url, caption=item_name, width=200)
-    # Create a button for each image
-    if st.button(f'Select {item_name}'):
-        selected_item = item_name
-        break  # Break the loop if a selection is made
+# Creating a list for radio button selections that contains the item names
+item_names = list(menu_items_with_images.keys())
 
-# Display the recommendations if an item was selected
-if selected_item and confidence:
-    st.subheader(f'Top 3 recommended items to go with {selected_item}:')
+# Create a radio button for item selection
+selected_item_name = st.radio('Select a menu item:', item_names)
+
+# Display the selected item's image using the dictionary of menu items with images
+if selected_item_name:
+    st.image(menu_items_with_images[selected_item_name], width=300)
+
+# If a selection has been made, show the recommendations
+if selected_item_name and confidence:
+    # Display the recommendations
+    st.subheader(f'Top 3 recommended items to go with {selected_item_name}:')
     recommendations = []
 
     # Logic to get recommendations based on the selected item
     for premise, conclusion in sorted(confidence, key=lambda x: confidence[x], reverse=True):
         premise_name = features[premise]
         conclusion_name = features[conclusion]
-        if premise_name == selected_item:
+        if premise_name == selected_item_name and len(recommendations) < 3:
             recommendations.append(conclusion_name)
-            if len(recommendations) >= 3:
-                break
 
     # Display the recommendations
     for i, recommended_item in enumerate(recommendations, start=1):
         st.write(f"{i}. {recommended_item}")
-
-# You can include any additional Streamlit components you need below
