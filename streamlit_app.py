@@ -3,6 +3,7 @@ import streamlit as st
 from collections import defaultdict
 import requests
 from io import BytesIO
+from PIL import Image
 
 # Function to process the file from GitHub
 def process_github_file(repo_url, file_path):
@@ -52,22 +53,52 @@ file_path = "JapanMenuItems.xlsx"
 # Process the file from GitHub
 confidence, support, features = process_github_file(repo_url, file_path)
 
-# Display dropdown menu to select menu item
-if confidence is not None:
-    selected_item = st.selectbox('Select a menu item:', features)
+# Display images as buttons
+st.subheader('Choose a menu item:')
 
+# Dictionary of menu items and their image URLs
+menu_items_with_images = {
+    "California Roll": "https://norecipes.com/wp-content/uploads/2019/12/best-california-roll-004.jpg",
+    "Salmon Nigiri": "https://aisforappleau.com/wp-content/uploads/2023/07/how-to-make-sushi-salmon-nigiri-6.jpg",
+    "Tonkotsu Ramen": "https://www.seriouseats.com/thmb/IBikLAGkkP2QVaF3vLIk_LeNqHM=/1500x0/filters:no_upscale():max_bytes(150000):strip_icc()/rich-and-creamy-tonkotsu-ramen-broth-from-scratch-recipe-Diana-Chistruga-hero-6d318fadcca64cc9ac3e1c40fc7682fb.JPG",
+    "Chicken Teriyaki Bento": "https://images.squarespace-cdn.com/content/v1/63d0a16cfad8c1759df2fe31/54270454-daec-4ee8-95ac-77d58559b9b9/GCBC14_EP11_Chicken-Teriyaki-Bento-Box_1L0A7045-700x404.jpg",
+    "Edamame": "https://images.services.kitchenstories.io/gwBULxPG7Q4QmFzkK_SoUCNJYKA=/3840x0/filters:quality(85)/images.kitchenstories.io/wagtailOriginalImages/R2958-final-photo-.jpg",
+    "Gyoza (Dumplings)": "https://japanesetaste.com/cdn/shop/articles/how-to-make-gyoza-japanese-dumplings-at-home-japanese-taste.jpg?v=1694487043&width=5760",
+    "Tempura (Shrimp)": "https://recipe30.com/wp-content/uploads/2022/11/Tempura-Shrimp.jpg",
+    "Green Tea Ice Cream": "https://www.justonecookbook.com/wp-content/uploads/2021/08/Green-Tea-Ice-Cream-0099-I-1.jpg",
+    "Mochi Ice Cream": "https://www.justonecookbook.com/wp-content/uploads/2020/08/Mochi-Ice-Cream-8680-I.jpg",
+    "Matcha Latte": "https://cdn.loveandlemons.com/wp-content/uploads/2023/06/iced-matcha-latte.jpg",
+    # ... more items and URLs as necessary
+}
+
+# Variable to track the selected item
+selected_item = None
+
+# Iterate over the menu items and their images
+for item_name, item_image_url in menu_items_with_images.items():
+    # Display image with caption
+    st.image(item_image_url, caption=item_name, width=200)
+    # Create a button for each image
+    if st.button(f'Select {item_name}'):
+        selected_item = item_name
+        break  # Break the loop if a selection is made
+
+# Display the recommendations if an item was selected
+if selected_item and confidence:
+    st.subheader(f'Top 3 recommended items to go with {selected_item}:')
     recommendations = []
+
+    # Logic to get recommendations based on the selected item
     for premise, conclusion in sorted(confidence, key=lambda x: confidence[x], reverse=True):
         premise_name = features[premise]
         conclusion_name = features[conclusion]
         if premise_name == selected_item:
             recommendations.append(conclusion_name)
-        if len(recommendations) >= 3:
-            break
+            if len(recommendations) >= 3:
+                break
 
-    if recommendations:
-        st.subheader(f'Top 3 recommended items to go with {selected_item}:')
-        for i, item in enumerate(recommendations, start=1):
-            st.write(f"{i}. {item}")
-    else:
-        st.write("No recommendations available for the selected item.")
+    # Display the recommendations
+    for i, recommended_item in enumerate(recommendations, start=1):
+        st.write(f"{i}. {recommended_item}")
+
+# You can include any additional Streamlit components you need below
